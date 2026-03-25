@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">StaticFM</string>
+    <string name="tagline">your music, your stats</string>
+    <string name="privacy_note">We only read your listening data.</string>
+    <string name="what_youll_get">what you\'ll get</string>
+    <string name="continue_with_spotify">Continue with Spotify</string>
+    <string name="terms">By continuing you agree to our Terms &amp; Privacy Policy</string>
+    <string name="feature_weekly">Weekly Stats</string>
+    <string name="feature_artists">Top Artists</string>
+    <string name="feature_retrowrap">RetroWrap</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_tracks">Tracks</string>
+    <string name="nav_artists">Artists</string>
+    <string name="nav_quemado">Quemado</string>
+    <string name="top_tracks_title">Top Tracks</string>
+    <string name="tab_this_week">This week</string>
+    <string name="tab_4_weeks">4 weeks</string>
+    <string name="tab_6_months">6 months</string>
+    <string name="tab_all_time">All time</string>
+    <string name="this_month">this month</string>
+    <string name="playing_now">PLAYING NOW</string>
+    <string name="this_week_section">THIS WEEK </string>
+    <string name="weekly_recap">Weekly Recap</string>
+</resources>
