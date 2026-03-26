@@ -22,6 +22,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
+import com.fatupopz.staticfm.data.api.SpotifyAuth
 
 data class FeatureItem(val icon: String, val labelRes: Int)
 @Composable
@@ -137,11 +138,14 @@ private fun AppIcon() {
 
 @Composable
 private fun SpotifyLoginButton(onClick: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(61.dp)
-            .clickable { onClick() },
+            .clickable {
+                SpotifyAuth.openAuthInBrowser(context)
+            },
         contentAlignment = Alignment.CenterStart
     ) {
         Image(
@@ -155,7 +159,7 @@ private fun SpotifyLoginButton(onClick: () -> Unit) {
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White,
-            modifier = Modifier.padding(start = 58.dp)
+            modifier = Modifier.padding(start = 56.dp)
         )
     }
 }
