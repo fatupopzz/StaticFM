@@ -4,9 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,51 +14,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.fatupopz.staticfm.R
+import com.fatupopz.staticfm.data.model.TrackItem
 import com.fatupopz.staticfm.ui.components.BottomNav
 import com.fatupopz.staticfm.ui.components.NavScreen
 import com.fatupopz.staticfm.ui.theme.*
-
-data class TrackItem(
-    val rank: String,
-    val name: String,
-    val artist: String,
-    val plays: String,
-    val duration: String,
-    val playPercent: Float,
-    val isHot: Boolean = false,
-    val artColor1: Color,
-    val artColor2: Color
-)
-
-// Placeholder tracks — luego vendrán de la Spotify API
-val sampleTracks = listOf(
-    TrackItem("01","Madrugada","Farmacos","47x","3:42",1.0f,true,Color(0xFF3C0A8C),Color(0xFF0A37B4)),
-    TrackItem("02","Oceanica","Nina Tormenta","38x","4:15",0.81f,false,Color(0xFF0A1978),Color(0xFF0A5FAF)),
-    TrackItem("03","Verano Peligroso","Cultivo","31x","3:28",0.66f,false,Color(0xFF0A5A37),Color(0xFF0A825A)),
-    TrackItem("04","Ceniza","La Vida Boheme","24x","5:02",0.51f,false,Color(0xFF641E0A),Color(0xFFA0500A)),
-    TrackItem("05","Bruma","Concepcion Quezada","19x","3:55",0.40f,false,Color(0xFF0A3C64),Color(0xFF0A648C)),
-    TrackItem("06","Ciudad Noche","Ximena Sarinana","15x","4:20",0.32f,false,Color(0xFF500A50),Color(0xFF78148C)),
-    TrackItem("07","Nada Nos Separa","Carla Morrison","12x","3:38",0.26f,false,Color(0xFF0A5050),Color(0xFF0A7878)),
-    TrackItem("08","Mar de Flores","La Llorona","10x","4:48",0.21f,false,Color(0xFF32500A),Color(0xFF50820A)),
-)
+import com.fatupopz.staticfm.viewmodel.TracksViewModel
 
 @Composable
 fun TopTracksScreen(
     onBack: () -> Unit,
-    onNavigate: (NavScreen) -> Unit
+    onNavigate: (NavScreen) -> Unit,
+    viewModel: TracksViewModel = viewModel()
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
+    val uiState by viewModel.uiState.collectAsState()
+    var selectedTab by remember { mutableStateOf(1) } // default: medium_term
+    val timeRanges = listOf("short_term", "medium_term", "long_term")
     val tabs = listOf(
         stringResource(R.string.tab_this_week),
         stringResource(R.string.tab_4_weeks),
         stringResource(R.string.tab_6_months),
-        stringResource(R.string.tab_all_time)
     )
+
+    LaunchedEffect(selectedTab) {
+        viewModel.loadTracks(timeRanges[selectedTab])
+    }
 
     Box(
         modifier = Modifier
@@ -75,33 +62,52 @@ fun TopTracksScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
-            // Header
             TopTracksHeader(onBack = onBack)
 
-            // Time tabs
             TimeTabs(
                 tabs = tabs,
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it }
             )
 
-            // Summary bar
-            SummaryBar()
+            SummaryBar(count = uiState.tracks.size)
 
-            // Track list
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(9.dp),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                itemsIndexed(sampleTracks) { _, track ->
-                    TrackRow(track = track)
+            when {
+                uiState.isLoading -> {
+                    Box(
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = CyanLight)
+                    }
+                }
+                uiState.error != null -> {
+                    Box(
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Error: ${uiState.error}",
+                            color = TextDim,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(9.dp),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        itemsIndexed(uiState.tracks) { index, track ->
+                            RealTrackRow(rank = index + 1, track = track)
+                        }
+                    }
                 }
             }
 
-            // Bottom nav
             BottomNav(
                 currentScreen = NavScreen.TRACKS,
                 onNavigate = onNavigate
@@ -118,7 +124,6 @@ private fun TopTracksHeader(onBack: () -> Unit) {
             .padding(start = 16.dp, end = 16.dp, top = 50.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Back button
         Box(
             modifier = Modifier
                 .size(36.dp)
@@ -141,7 +146,6 @@ private fun TopTracksHeader(onBack: () -> Unit) {
             color = CyanLight
         )
         Spacer(modifier = Modifier.weight(1f))
-        // Sort button
         Box(
             modifier = Modifier
                 .width(80.dp)
@@ -173,21 +177,21 @@ private fun TimeTabs(
                     .clip(RoundedCornerShape(14.dp))
                     .background(
                         if (isActive)
-                            Brush.verticalGradient(colors = listOf(
-                                Color(0xFF00B4DC).copy(alpha = 0.45f),
-                                Color(0xFF008CBE).copy(alpha = 0.25f)
-                            ))
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color(0xFF00B4DC).copy(alpha = 0.45f),
+                                    Color(0xFF008CBE).copy(alpha = 0.25f)
+                                )
+                            )
                         else
-                            Brush.verticalGradient(colors = listOf(
-                                Color.White.copy(alpha = 0.07f),
-                                Color.White.copy(alpha = 0.02f)
-                            ))
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.White.copy(alpha = 0.07f),
+                                    Color.White.copy(alpha = 0.02f)
+                                )
+                            )
                     )
-                    .then(
-                        if (isActive) Modifier else Modifier
-                    )
-                    .padding(horizontal = 14.dp)
-                    .wrapContentWidth(),
+                    .padding(horizontal = 14.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -203,7 +207,7 @@ private fun TimeTabs(
 }
 
 @Composable
-private fun SummaryBar() {
+private fun SummaryBar(count: Int) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -223,7 +227,7 @@ private fun SummaryBar() {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "247 tracks",
+                text = "$count tracks",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = CyanLight
@@ -242,8 +246,10 @@ private fun SummaryBar() {
 }
 
 @Composable
-fun TrackRow(track: TrackItem) {
-    val isFirst = track.rank == "01"
+fun RealTrackRow(rank: Int, track: TrackItem) {
+    val isFirst = rank == 1
+    val rankStr = rank.toString().padStart(2, '0')
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -282,7 +288,7 @@ fun TrackRow(track: TrackItem) {
         ) {
             // Rank
             Text(
-                text = track.rank,
+                text = rankStr,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (isFirst) CyanLight else TextDim,
@@ -291,41 +297,15 @@ fun TrackRow(track: TrackItem) {
 
             Spacer(modifier = Modifier.width(6.dp))
 
-            // Album art placeholder
-            Box(
+            // Album art real con Coil
+            AsyncImage(
+                model = track.albumArtUrl,
+                contentDescription = track.name,
                 modifier = Modifier
                     .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(track.artColor1, track.artColor2)
-                        )
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                // Shine
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(20.dp)
-                        .align(Alignment.TopCenter)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.White.copy(alpha = 0.3f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
-                )
-                // Aquí irá AsyncImage con Coil cuando tengamos la API
-                Text(
-                    text = track.name.first().toString(),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.9f)
-                )
-            }
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
 
             Spacer(modifier = Modifier.width(10.dp))
 
@@ -336,9 +316,10 @@ fun TrackRow(track: TrackItem) {
                         text = track.name,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.White
+                        color = Color.White,
+                        maxLines = 1
                     )
-                    if (track.isHot) {
+                    if (isFirst) {
                         Spacer(modifier = Modifier.width(6.dp))
                         Box(
                             modifier = Modifier
@@ -366,30 +347,24 @@ fun TrackRow(track: TrackItem) {
                     }
                 }
                 Text(
-                    text = track.artist,
+                    text = track.artistNames,
                     fontSize = 11.sp,
-                    color = TextDim
+                    color = TextDim,
+                    maxLines = 1
                 )
             }
 
-            // Plays + duration + bar
+            // Duration + popularity bar
             Column(
                 horizontalAlignment = Alignment.End,
                 modifier = Modifier.width(56.dp)
             ) {
                 Text(
-                    text = track.plays,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = if (isFirst) CyanLight else TextDim
-                )
-                Text(
-                    text = track.duration,
+                    text = track.durationFormatted,
                     fontSize = 10.sp,
                     color = TextDim.copy(alpha = 0.6f)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Play bar
                 Box(
                     modifier = Modifier
                         .width(44.dp)
@@ -400,7 +375,7 @@ fun TrackRow(track: TrackItem) {
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
-                            .fillMaxWidth(track.playPercent)
+                            .fillMaxWidth(track.popularity / 100f)
                             .clip(RoundedCornerShape(2.dp))
                             .background(
                                 Brush.horizontalGradient(

@@ -25,6 +25,24 @@ import com.fatupopz.staticfm.ui.components.BottomNav
 import com.fatupopz.staticfm.ui.components.NavScreen
 import com.fatupopz.staticfm.ui.theme.*
 
+
+// Datos temporales hasta conectar HomeViewModel
+private val homeSampleTracks = listOf(
+    com.fatupopz.staticfm.ui.screens.HomeTrack("01","Madrugada","Farmacos",true,Color(0xFF3C0A8C),Color(0xFF0A37B4)),
+    com.fatupopz.staticfm.ui.screens.HomeTrack("02","Oceanica","Nina Tormenta",false,Color(0xFF0A1978),Color(0xFF0A5FAF)),
+    com.fatupopz.staticfm.ui.screens.HomeTrack("03","Verano Peligroso","Cultivo",false,Color(0xFF0A5A37),Color(0xFF0A825A)),
+    com.fatupopz.staticfm.ui.screens.HomeTrack("04","Ceniza","La Vida Boheme",false,Color(0xFF641E0A),Color(0xFFA0500A)),
+)
+
+data class HomeTrack(
+    val rank: String,
+    val name: String,
+    val artist: String,
+    val isHot: Boolean,
+    val artColor1: Color,
+    val artColor2: Color
+)
+
 @Composable
 fun HomeScreen(
     onNavigate: (NavScreen) -> Unit,
@@ -98,9 +116,9 @@ fun HomeScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
-                itemsIndexed(sampleTracks.take(4)) { _, track ->
+                itemsIndexed(homeSampleTracks.take(4)) { _, track ->
                     Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        TrackRow(track = track)
+                        HomeTrackRow(track = track)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -578,4 +596,72 @@ private fun SectionLabel(text: String) {
         letterSpacing = 2.5.sp,
         modifier = Modifier.padding(horizontal = 16.dp)
     )
+}
+
+@Composable
+private fun HomeTrackRow(track: HomeTrack) {
+    val isFirst = track.rank == "01"
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF64B4FF).copy(alpha = if (isFirst) 0.18f else 0.12f),
+                        Color(0xFF2878C8).copy(alpha = 0.06f)
+                    )
+                )
+            )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = track.rank,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isFirst) CyanLight else TextDim,
+                modifier = Modifier.width(26.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(track.artColor1, track.artColor2)
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = track.name.first().toString(),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = track.name, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color.White, maxLines = 1)
+                Text(text = track.artist, fontSize = 10.sp, color = TextDim, maxLines = 1)
+            }
+            if (track.isHot) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(9.dp))
+                        .background(Color(0xFFFF6432).copy(alpha = 0.8f))
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(text = "HOT", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = Color.White, letterSpacing = 1.sp)
+                }
+            }
+        }
+    }
 }
