@@ -22,6 +22,10 @@ import com.fatupopz.staticfm.ui.theme.CyanLight
 import com.fatupopz.staticfm.ui.theme.TextDim
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+
 
 enum class NavScreen {
     HOME, TRACKS, ARTISTS, QUEMADO
@@ -33,81 +37,78 @@ fun BottomNav(
     onNavigate: (NavScreen) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(72.dp)
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF145090).copy(alpha = 0.65f),
-                        Color(0xFF052864).copy(alpha = 0.9f)
-                    )
-                )
-            )
+    Column(
+        modifier = modifier.fillMaxWidth()
     ) {
-        // Top border glow
+        // La barra visual con los íconos
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(1.dp)
-                .align(Alignment.TopCenter)
-                .background(
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            Color(0xFF00C8E6).copy(alpha = 0.7f),
-                            Color.Transparent
-                        )
-                    )
-                )
-        )
-        // Top shine
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(28.dp)
-                .align(Alignment.TopCenter)
+                .height(58.dp)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 0.1f),
-                            Color.Transparent
+                            Color(0xFF145090).copy(alpha = 0.65f),
+                            Color(0xFF052864).copy(alpha = 0.9f)
                         )
                     )
                 )
-        )
-
-        Row(modifier = Modifier.fillMaxSize()) {
-            NavItem(
-                labelRes = R.string.nav_home,
-                iconRes = R.drawable.home,
-                isActive = currentScreen == NavScreen.HOME,
-                onClick = { onNavigate(NavScreen.HOME) },
-                modifier = Modifier.weight(1f)
+        ) {
+            // Top border glow
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .align(Alignment.TopCenter)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color(0xFF00C8E6).copy(alpha = 0.7f),
+                                Color.Transparent
+                            )
+                        )
+                    )
             )
-            NavItem(
-                labelRes = R.string.nav_tracks,
-                iconRes = R.drawable.tracks,
-                isActive = currentScreen == NavScreen.TRACKS,
-                onClick = { onNavigate(NavScreen.TRACKS) },
-                modifier = Modifier.weight(1f)
-            )
-            NavItem(
-                labelRes = R.string.nav_artists,
-                iconRes = R.drawable.icon_artists,
-                isActive = currentScreen == NavScreen.ARTISTS,
-                onClick = { onNavigate(NavScreen.ARTISTS) },
-                modifier = Modifier.weight(1f)
-            )
-            NavItem(
-                labelRes = R.string.nav_quemado,
-                iconRes = R.drawable.quemados,
-                isActive = currentScreen == NavScreen.QUEMADO,
-                onClick = { onNavigate(NavScreen.QUEMADO) },
-                modifier = Modifier.weight(1f)
-            )
+            Row(modifier = Modifier.fillMaxSize()) {
+                NavItem(
+                    labelRes = R.string.nav_home,
+                    iconRes = R.drawable.home,
+                    isActive = currentScreen == NavScreen.HOME,
+                    onClick = { onNavigate(NavScreen.HOME) },
+                    modifier = Modifier.weight(1f)
+                )
+                NavItem(
+                    labelRes = R.string.nav_tracks,
+                    iconRes = R.drawable.tracks,
+                    isActive = currentScreen == NavScreen.TRACKS,
+                    onClick = { onNavigate(NavScreen.TRACKS) },
+                    modifier = Modifier.weight(1f)
+                )
+                NavItem(
+                    labelRes = R.string.nav_artists,
+                    iconRes = R.drawable.icon_artists,
+                    isActive = currentScreen == NavScreen.ARTISTS,
+                    onClick = { onNavigate(NavScreen.ARTISTS) },
+                    modifier = Modifier.weight(1f)
+                )
+                NavItem(
+                    labelRes = R.string.nav_quemado,
+                    iconRes = R.drawable.quemados,
+                    isActive = currentScreen == NavScreen.QUEMADO,
+                    onClick = { onNavigate(NavScreen.QUEMADO) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
+
+        // Espacio para la barra del sistema Samsung — se adapta automáticamente
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .background(Color(0xFF052864).copy(alpha = 0.9f))
+        )
     }
 }
 

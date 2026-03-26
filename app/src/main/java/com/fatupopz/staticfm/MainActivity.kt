@@ -20,6 +20,7 @@ import com.fatupopz.staticfm.ui.theme.StaticFMTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.activity.enableEdgeToEdge
 
 class MainActivity : ComponentActivity() {
 
@@ -29,6 +30,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         tokenManager = SpotifyTokenManager(this)
 
         setContent {
